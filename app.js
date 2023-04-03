@@ -25,8 +25,10 @@ app.get('/', (req, res) => {
 
 // Get all movies
 app.get('/all-movies', (req, res) => {
-    res.json(favoriteMovieList)
+    const filteredMovies = req.query.starRating ? favoriteMovieList.filter(movie => movie.starRating >= req.query.starRating) : favoriteMovieList;
+    res.json(filteredMovies);
 })
+
 
 // Get single movie
 app.get('/single-movie/:titleToFind', (req, res) => {
@@ -40,16 +42,29 @@ app.get('/single-movie/:titleToFind', (req, res) => {
 })
 
 // Add new movie
+// Add new movie
 app.post('/new-movie', (req, res) => {
-    const newMovie = {
-        title: req.body.title,
-        starRating: req.body.starRating,
-        isRecommended: req.body.isRecommended,
-        createdAt: new Date(),
-        lastModified: new Date()
+    const title = req.body.title;
+    const starRating = req.body.starRating;
+    const isRecommended = req.body.isRecommended;
+
+    if (!title || typeof title !== 'string') {
+        res.status(400).json({ success: false, message: "title is required and must be a string" });
+    } else if (!starRating || typeof starRating !== 'number' || starRating <= 0 || starRating >= 5) {
+        res.status(400).json({ success: false, message: "starRating is required and must be a number between 0 and 5" });
+    } else if (!isRecommended || typeof isRecommended !== 'boolean') {
+        res.status(400).json({ success: false, message: "isRecommended is required and must be a boolean" });
+    } else {
+        const newMovie = {
+            title: title,
+            starRating: starRating,
+            isRecommended: isRecommended,
+            createdAt: new Date(),
+            lastModified: new Date()
+        }
+        favoriteMovieList.push(newMovie);
+        res.json({ success: true });
     }
-    favoriteMovieList.push(newMovie);
-    res.json({ success: true });
 })
 
 // Update movie
